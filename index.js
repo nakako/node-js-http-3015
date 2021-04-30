@@ -1,8 +1,25 @@
 'use strict';
 const http = require('http');
 const pug = require('pug');
-const server = http.createServer((req, res) => {
+const auth = require('http-auth');
+const basic = auth.basic({realm: 'Enquetes Area.' }, (username, password, callback) => {
+  callback(username === 'guest' && password === 'xaXZJQmE');
+});
+const server = http.createServer(basic, (req, res) => {
   console.info('Requested by ' + req.connection.remoteAddress);
+  
+  const link_root = '/'
+  const link_logout = '/logout';
+
+  if(req.url === '/logout'){
+    res.writeHead(401, {
+      'Content-Type': 'text/html; charset=utf-8'
+    });
+    res.write('<!DOCTYPE html><html lang="ja"><body><p>ログアウトしました</p><a href=' +link_root+ '>ログイン</a></body></html>');
+    res.end();
+    return;
+  }
+  
   res.writeHead(200, {
     'Content-Type': 'text/html; charset=utf-8'
   });
@@ -15,7 +32,7 @@ const server = http.createServer((req, res) => {
       switch (req.url) {
         case '/':
           setHTML = true;
-          html = '<!DOCTYPE html><html lang="ja"><body>' +
+          html = '<!DOCTYPE html><html lang="ja"><body><a href=' +link_logout+ '>ログアウト</a>' +
             '<h1>アンケートフォーム</h1>' +
             '<a href="/enquetes">アンケート一覧</a>' +
             '</body></html>';
@@ -23,7 +40,7 @@ const server = http.createServer((req, res) => {
 
         case '/enquetes':
           setHTML = true;
-          html = '<!DOCTYPE html><html lang="ja"><body>' +
+          html = '<!DOCTYPE html><html lang="ja"><body><a href=' +link_logout+ '>ログアウト</a>' +
             '<h1>アンケート一覧</h1><ul>' +
             '<li><a href="/enquetes/yaki-shabu">焼き肉・しゃぶしゃぶ</a></li>' +
             '<li><a href="/enquetes/rice-bread">ごはん・パン</a></li>' +
